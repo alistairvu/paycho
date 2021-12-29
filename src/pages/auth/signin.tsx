@@ -13,7 +13,6 @@ const SignIn: NextPage = () => {
           <Heading>Get started with Paycho</Heading>
           <Box h={2} />
           <Text>Use your Google account to get started with Paycho</Text>
-
           <Box h={4} />
 
           <Flex>

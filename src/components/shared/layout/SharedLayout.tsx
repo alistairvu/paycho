@@ -8,7 +8,7 @@ const SharedLayout: React.FC = ({ children }) => (
     </header>
 
     <main>
-      <Box p={2}>{children}</Box>
+      <Box p={4}>{children}</Box>
     </main>
   </>
 );
