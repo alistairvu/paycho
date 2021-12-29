@@ -6,6 +6,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "db:org": "pscale org switch paycho",
     "db:dev": "pscale connect paycho alistair-dev --port 3309",
     "db:shadow": "pscale connect paycho alistair-shadow --port 3310"
   },

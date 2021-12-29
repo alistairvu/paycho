@@ -1,11 +1,11 @@
 import { SharedMeta } from '@/components/shared';
-import { Heading, Container, Box } from '@chakra-ui/react';
+import { Container, Box } from '@chakra-ui/react';
 import type { GetServerSideProps, NextPage } from 'next';
 import { getSession, useSession } from 'next-auth/react';
 import { DashboardCreated } from '@/components/dashboard';
 
-const Dashboard: NextPage = (props) => {
-  const { data: session, status } = useSession();
+const Dashboard: NextPage = () => {
+  const { status } = useSession();
 
   if (status === 'loading') {
     return null;
@@ -16,10 +16,6 @@ const Dashboard: NextPage = (props) => {
       <SharedMeta title="Welcome" />
       <Container maxW="4xl" centerContent>
         <Box>
-          <Heading size="2xl">
-            Welcome to your dashboard, {session?.user?.name}!
-          </Heading>
-
           <DashboardCreated />
         </Box>
       </Container>

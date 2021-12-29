@@ -3,8 +3,6 @@ import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/utils/prisma';
 
-console.log(process.env);
-
 export default NextAuth({
   providers: [
     GoogleProvider({
@@ -18,5 +16,12 @@ export default NextAuth({
 
   pages: {
     signIn: '/auth/signin',
+  },
+
+  callbacks: {
+    session: async ({ session, user }: any) => {
+      session.user.id = user.id;
+      return Promise.resolve(session);
+    },
   },
 });
