@@ -12,6 +12,7 @@ import {
   FormLabel,
   Input,
   Select,
+  useToast,
 } from '@chakra-ui/react';
 import cc from 'currency-codes';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -25,12 +26,34 @@ type EventInputs = {
 
 const DashboardCreateForm: React.FC<{ isOpen: boolean; onClose: () => void }> =
   ({ isOpen, onClose }) => {
-    const { register, handleSubmit } = useForm<EventInputs>();
+    const {
+      register,
+      handleSubmit,
+      formState: { isSubmitting },
+    } = useForm<EventInputs>();
     const addEvent = trpc.useMutation(['event.add']);
+    const toast = useToast();
 
     const onSubmit: SubmitHandler<EventInputs> = async (data) => {
       const result = await addEvent.mutateAsync(data);
-      console.log(result);
+      onClose();
+
+      if (result.success) {
+        toast({
+          title: 'Event created!',
+          status: 'success',
+          isClosable: true,
+          duration: 2500,
+        });
+        console.log(result);
+      } else {
+        toast({
+          title: 'An error occurred',
+          status: 'error',
+          isClosable: true,
+          duration: 2500,
+        });
+      }
     };
 
     return (
@@ -79,6 +102,8 @@ const DashboardCreateForm: React.FC<{ isOpen: boolean; onClose: () => void }> =
                 color="white"
                 leftIcon={<BsPlusLg />}
                 type="submit"
+                isLoading={isSubmitting}
+                loadingText="Creating..."
               >
                 Create
               </Button>
