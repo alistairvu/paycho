@@ -50,6 +50,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  events        Event[]
 }
 
 model VerificationToken {
@@ -58,4 +59,12 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Event {
+  id       String @id @default(cuid())
+  owner    User   @relation(fields: [ownerId], references: [id])
+  ownerId  String
+  currency String
+  name     String
 }

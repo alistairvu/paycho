@@ -16,6 +16,7 @@ import {
 import cc from 'currency-codes';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { BsPlusLg } from 'react-icons/bs';
+import { trpc } from '@/utils/trpc';
 
 type EventInputs = {
   name: string;
@@ -25,9 +26,11 @@ type EventInputs = {
 const DashboardCreateForm: React.FC<{ isOpen: boolean; onClose: () => void }> =
   ({ isOpen, onClose }) => {
     const { register, handleSubmit } = useForm<EventInputs>();
+    const addEvent = trpc.useMutation(['event.add']);
 
-    const onSubmit: SubmitHandler<EventInputs> = (data) => {
-      console.log(data);
+    const onSubmit: SubmitHandler<EventInputs> = async (data) => {
+      const result = await addEvent.mutateAsync(data);
+      console.log(result);
     };
 
     return (
