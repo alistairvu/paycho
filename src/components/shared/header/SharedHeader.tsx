@@ -7,7 +7,14 @@ const SharedHeader: React.FC = () => {
   const { status } = useSession();
 
   return (
-    <Flex p={4} shadow="lg" justify="between" align="center" background="white">
+    <Flex
+      w="100%"
+      p={4}
+      shadow="lg"
+      justify="between"
+      align="center"
+      background="white"
+    >
       <NextLink href={status === 'authenticated' ? '/dashboard' : '/'} passHref>
         <Heading color="cyan.700" size="lg" cursor="pointer">
           paycho

@@ -1,9 +1,20 @@
-import { Flex, Button, Spacer, Heading, useDisclosure } from '@chakra-ui/react';
+import {
+  Flex,
+  Button,
+  Spacer,
+  Heading,
+  useDisclosure,
+  useBreakpointValue,
+} from '@chakra-ui/react';
 import { BsPlusLg } from 'react-icons/bs';
 import DashboardCreateForm from './DashboardCreateForm';
 
 const DashboardCreated: React.FC = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
+  const buttonText = useBreakpointValue({
+    base: 'Event',
+    lg: 'New Event',
+  });
 
   return (
     <Flex py={2}>
@@ -16,7 +27,7 @@ const DashboardCreated: React.FC = () => {
         onClick={onOpen}
         leftIcon={<BsPlusLg />}
       >
-        Create an Event
+        {buttonText}
       </Button>
 
       <DashboardCreateForm isOpen={isOpen} onClose={onClose} />

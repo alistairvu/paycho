@@ -10,6 +10,7 @@ import {
   MenuItem,
   IconButton,
   MenuDivider,
+  Portal,
 } from '@chakra-ui/react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
@@ -48,13 +49,16 @@ const HeaderButton: React.FC = () => {
         }
         h={10}
       />
-      <MenuList>
-        <MenuItem fontWeight="bold" color="black">
-          {session?.user?.name}
-        </MenuItem>
-        <MenuDivider />
-        <MenuItem onClick={() => signOut()}>Sign Out</MenuItem>
-      </MenuList>
+
+      <Portal>
+        <MenuList zIndex="popover">
+          <MenuItem fontWeight="bold" color="black">
+            {session?.user?.name}
+          </MenuItem>
+          <MenuDivider />
+          <MenuItem onClick={() => signOut()}>Sign Out</MenuItem>
+        </MenuList>
+      </Portal>
     </Menu>
   );
 };
