@@ -24,11 +24,7 @@ type EventInputs = {
 
 const DashboardCreateForm: React.FC<{ isOpen: boolean; onClose: () => void }> =
   ({ isOpen, onClose }) => {
-    const {
-      register,
-      handleSubmit,
-      formState: { errors },
-    } = useForm<EventInputs>();
+    const { register, handleSubmit } = useForm<EventInputs>();
 
     const onSubmit: SubmitHandler<EventInputs> = (data) => {
       console.log(data);

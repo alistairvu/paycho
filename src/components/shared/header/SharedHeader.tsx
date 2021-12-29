@@ -1,7 +1,7 @@
-import { Flex, Heading, Spacer, Link } from '@chakra-ui/react';
-import HeaderButton from './HeaderButton';
+import { Flex, Heading, Spacer } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { useSession } from 'next-auth/react';
+import HeaderButton from './HeaderButton';
 
 const SharedHeader: React.FC = () => {
   const { status } = useSession();

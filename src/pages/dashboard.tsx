@@ -1,7 +1,7 @@
-import { SharedMeta } from '@/components/shared';
 import { Container, Box } from '@chakra-ui/react';
 import type { GetServerSideProps, NextPage } from 'next';
 import { getSession, useSession } from 'next-auth/react';
+import { SharedMeta } from '@/components/shared';
 import { DashboardCreated } from '@/components/dashboard';
 
 const Dashboard: NextPage = () => {

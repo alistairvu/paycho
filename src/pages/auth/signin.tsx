@@ -3,8 +3,7 @@ import { GetServerSideProps, NextPage } from 'next';
 import { getSession, signIn } from 'next-auth/react';
 import { FaGoogle } from 'react-icons/fa';
 
-const SignIn: NextPage = () => {
-  return (
+const SignIn: NextPage = () => (
     <Flex h="80vh" direction="column">
       <Spacer />
       <Flex>
@@ -32,7 +31,6 @@ const SignIn: NextPage = () => {
       <Spacer />
     </Flex>
   );
-};
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { req } = ctx;

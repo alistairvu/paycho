@@ -1,18 +1,16 @@
 import { Heading } from '@chakra-ui/react';
 import type { GetServerSideProps, NextPage } from 'next';
 
-import { SharedMeta } from '@/components/shared';
 import { getSession } from 'next-auth/react';
+import { SharedMeta } from '@/components/shared';
 
-const Home: NextPage = () => {
-  return (
+const Home: NextPage = () => (
     <div>
       <SharedMeta title="Welcome" />
       <Heading size="4xl">This is the current home page</Heading>
       <main />
     </div>
   );
-};
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { req } = ctx;

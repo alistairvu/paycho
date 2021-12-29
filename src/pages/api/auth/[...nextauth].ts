@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable no-param-reassign */
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
@@ -19,6 +21,7 @@ export default NextAuth({
   },
 
   callbacks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session: async ({ session, user }: any) => {
       session.user.id = user.id;
       return Promise.resolve(session);
