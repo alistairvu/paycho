@@ -24,94 +24,103 @@ type EventInputs = {
   currency: string;
 };
 
-const DashboardCreateForm: React.FC<{ isOpen: boolean; onClose: () => void }> =
-  ({ isOpen, onClose }) => {
-    const {
-      register,
-      handleSubmit,
-      formState: { isSubmitting },
-    } = useForm<EventInputs>();
-    const addEvent = trpc.useMutation(['event.add']);
-    const toast = useToast();
+const DashboardCreateForm: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ isOpen, onClose }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<EventInputs>();
 
-    const onSubmit: SubmitHandler<EventInputs> = async (data) => {
-      const result = await addEvent.mutateAsync(data);
+  const utils = trpc.useContext();
+
+  const addEvent = trpc.useMutation(['event.add'], {
+    onSuccess() {
+      utils.invalidateQueries(['event.get-created']);
+    },
+  });
+  const toast = useToast();
+
+  const onSubmit: SubmitHandler<EventInputs> = async (data) => {
+    const result = await addEvent.mutateAsync(data);
+
+    if (result.success) {
       onClose();
 
-      if (result.success) {
-        toast({
-          title: 'Event created!',
-          status: 'success',
-          isClosable: true,
-          duration: 2500,
-        });
-        console.log(result);
-      } else {
-        toast({
-          title: 'An error occurred',
-          status: 'error',
-          isClosable: true,
-          duration: 2500,
-        });
-      }
-    };
-
-    return (
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <ModalContent>
-            <ModalHeader>Create a new Event</ModalHeader>
-            <ModalCloseButton />
-
-            <ModalBody>
-              <FormControl p={2}>
-                <FormLabel htmlFor="name">Name of event</FormLabel>
-                <Input
-                  id="name"
-                  type="text"
-                  required
-                  {...register('name', { required: true })}
-                />
-                <FormHelperText>Give your event a nice name.</FormHelperText>
-              </FormControl>
-
-              <FormControl p={2}>
-                <FormLabel htmlFor="name">Currency</FormLabel>
-                <Select
-                  id="currency"
-                  placeholder="Select currency"
-                  {...register('currency', { required: true })}
-                >
-                  {cc.codes().map((code) => (
-                    <option key={code}>{code}</option>
-                  ))}
-                </Select>
-                <FormHelperText>Select a currency.</FormHelperText>
-              </FormControl>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button variant="ghost" onClick={onClose}>
-                Close
-              </Button>
-
-              <Button
-                colorScheme="cyan"
-                backgroundColor="cyan.600"
-                color="white"
-                leftIcon={<BsPlusLg />}
-                type="submit"
-                isLoading={isSubmitting}
-                loadingText="Creating..."
-              >
-                Create
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </form>
-      </Modal>
-    );
+      toast({
+        title: 'Event created!',
+        status: 'success',
+        isClosable: true,
+        duration: 2500,
+      });
+    } else {
+      toast({
+        title: 'An error occurred',
+        status: 'error',
+        isClosable: true,
+        duration: 2500,
+      });
+    }
   };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <ModalContent>
+          <ModalHeader>Create a new Event</ModalHeader>
+          <ModalCloseButton />
+
+          <ModalBody>
+            <FormControl p={2}>
+              <FormLabel htmlFor="name">Name of event</FormLabel>
+              <Input
+                id="name"
+                type="text"
+                required
+                {...register('name', { required: true })}
+              />
+              <FormHelperText>Give your event a nice name.</FormHelperText>
+            </FormControl>
+
+            <FormControl p={2}>
+              <FormLabel htmlFor="name">Currency</FormLabel>
+              <Select
+                id="currency"
+                placeholder="Select currency"
+                {...register('currency', { required: true })}
+              >
+                {cc.codes().map((code) => (
+                  <option key={code}>{code}</option>
+                ))}
+              </Select>
+              <FormHelperText>Select a currency.</FormHelperText>
+            </FormControl>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button variant="ghost" onClick={onClose}>
+              Close
+            </Button>
+
+            <Button
+              colorScheme="cyan"
+              backgroundColor="cyan.600"
+              color="white"
+              leftIcon={<BsPlusLg />}
+              type="submit"
+              isLoading={isSubmitting}
+              loadingText="Creating..."
+            >
+              Create
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </form>
+    </Modal>
+  );
+};
 
 export default DashboardCreateForm;

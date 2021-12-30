@@ -1,26 +1,16 @@
-import { Container, Box, Heading } from '@chakra-ui/react';
+import { Container, Box } from '@chakra-ui/react';
 import type { GetServerSideProps, NextPage } from 'next';
 import { getSession, useSession } from 'next-auth/react';
-import { useEffect } from 'react';
 import { SharedMeta } from '@/components/shared';
 import { DashboardCreated } from '@/components/dashboard';
 import { trpc } from '@/utils/trpc';
 
 const Dashboard: NextPage = () => {
   const { status } = useSession();
-  const { data: helloData, isLoading: isHelloLoading } = trpc.useQuery([
-    'hello.get',
-    { text: 'naevis' },
-  ]);
-  const { data: eventsData, isLoading: isEventsLoading } = trpc.useQuery([
-    'event.get-created',
-  ]);
 
-  useEffect(() => {
-    console.log(eventsData);
-  }, [eventsData]);
+  const { isLoading: isEventsLoading } = trpc.useQuery(['event.get-created']);
 
-  if (status === 'loading' || isHelloLoading || isEventsLoading) {
+  if (status === 'loading' || isEventsLoading) {
     return null;
   }
 
@@ -29,7 +19,6 @@ const Dashboard: NextPage = () => {
       <SharedMeta title="Welcome" />
       <Container maxW="4xl" centerContent>
         <Box w="100%">
-          <Heading>{helloData?.greeting}</Heading>
           <DashboardCreated />
         </Box>
       </Container>
