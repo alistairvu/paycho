@@ -1,4 +1,4 @@
-import { Container, Box } from '@chakra-ui/react';
+import { Container, Box, Skeleton } from '@chakra-ui/react';
 import type { GetServerSideProps, NextPage } from 'next';
 import { getSession, useSession } from 'next-auth/react';
 import { SharedMeta } from '@/components/shared';
@@ -11,7 +11,14 @@ const Dashboard: NextPage = () => {
   const { isLoading: isEventsLoading } = trpc.useQuery(['event.get-created']);
 
   if (status === 'loading' || isEventsLoading) {
-    return null;
+    return (
+      <>
+        <SharedMeta title="Welcome" />
+        <Container maxW="4xl" centerContent>
+          <Skeleton h={50} w="100%" />
+        </Container>
+      </>
+    );
   }
 
   return (

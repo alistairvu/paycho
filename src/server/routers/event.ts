@@ -5,6 +5,7 @@ import {
   addEvent,
   getCreatedEvents,
   deleteEvent,
+  getEventById,
 } from '@/server/controllers/event';
 
 const eventRouter = createRouter
@@ -37,6 +38,10 @@ const eventRouter = createRouter
   .query('delete', {
     input: object({ id: string() }),
     resolve: async ({ input, ctx }) => deleteEvent({ input, ctx }),
+  })
+  .query('get-by-id', {
+    input: object({ id: string() }),
+    resolve: async ({ input, ctx }) => getEventById({ input, ctx }),
   });
 
 export default eventRouter;

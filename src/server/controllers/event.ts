@@ -101,6 +101,63 @@ export const getCreatedEvents = async ({
 };
 
 // Delete event
+type GetByIdInput = {
+  id: string;
+};
+
+type GetByIdParams = {
+  input: GetByIdInput;
+  ctx: Context;
+};
+
+export const getEventById = async ({ input, ctx }: GetByIdParams) => {
+  const { session } = ctx;
+
+  if (session === null || prisma === undefined) {
+    return { success: false, message: 'An error occurred.' };
+  }
+
+  const { user } = session;
+  if (user === undefined) {
+    return { success: false, message: 'You have to be authenticated first.' };
+  }
+
+  const { email } = user;
+  const owner = await prisma.user.findUnique({
+    where: { email: email as string },
+  });
+
+  if (!owner) {
+    return { success: false, message: 'No user found.' };
+  }
+
+  const { id: eventId } = input;
+  const matchingEvent = await prisma.event.findUnique({
+    where: { id: eventId },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  if (matchingEvent === null) {
+    return { success: false, message: 'Matching event not found.' };
+  }
+
+  if (matchingEvent.ownerId !== owner.id) {
+    return { success: false, message: 'You cannot access this event.' };
+  }
+
+  return { success: true, event: matchingEvent };
+};
+
+// Delete event
 type DeleteEventInput = {
   id: string;
 };

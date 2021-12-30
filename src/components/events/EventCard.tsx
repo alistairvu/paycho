@@ -23,14 +23,14 @@ const EventCard: React.FC<{ event: EventWithOwner }> = ({ event }) => (
         <LinkOverlay>{event.name}</LinkOverlay>
       </NextLink>
     </Heading>
-    <Flex>
+    <Flex pt={1}>
+      <Text>created by {event.owner.name}</Text>
+      <Spacer />
       <Text>
         {formatDistance(new Date(event.createdAt), new Date(), {
           addSuffix: true,
         })}
       </Text>
-      <Spacer />
-      by {event.owner.name}{' '}
     </Flex>
   </LinkBox>
 );
