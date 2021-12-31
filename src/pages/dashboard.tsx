@@ -8,9 +8,11 @@ import { trpc } from '@/utils/trpc';
 const Dashboard: NextPage = () => {
   const { status } = useSession();
 
-  const { isLoading: isEventsLoading } = trpc.useQuery(['event.get-created']);
+  const { isLoading: isEventsLoading, data: eventsData } = trpc.useQuery([
+    'event.get-created',
+  ]);
 
-  if (status === 'loading' || isEventsLoading) {
+  if (status === 'loading' || isEventsLoading || !eventsData) {
     return (
       <>
         <SharedMeta title="Welcome" />
@@ -26,7 +28,7 @@ const Dashboard: NextPage = () => {
       <SharedMeta title="Welcome" />
       <Container maxW="4xl" centerContent>
         <Box w="100%">
-          <DashboardCreated />
+          <DashboardCreated eventsData={eventsData} />
         </Box>
       </Container>
     </>

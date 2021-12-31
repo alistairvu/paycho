@@ -7,13 +7,16 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { BsPlusLg } from 'react-icons/bs';
-import { trpc } from '@/utils/trpc';
 import DashboardCreateForm from './DashboardCreateForm';
 import { EventContainer } from '../events';
+import { inferQueryResponse } from '@/pages/api/trpc/[trpc]';
 
-const DashboardCreated: React.FC = () => {
+type EventsFromServer = inferQueryResponse<'event.get-created'>;
+
+const DashboardCreated: React.FC<{ eventsData: EventsFromServer }> = ({
+  eventsData,
+}) => {
   const { onOpen, isOpen, onClose } = useDisclosure();
-  const { data: eventsData } = trpc.useQuery(['event.get-created']);
   const buttonText = useBreakpointValue({
     base: 'Event',
     lg: 'New Event',

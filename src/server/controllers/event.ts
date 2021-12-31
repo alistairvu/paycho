@@ -32,6 +32,9 @@ export const addEvent = async ({ input, ctx }: AddEventParams) => {
         data: {
           ...input,
           ownerId: owner.id,
+          participants: {
+            create: [{ participant: { connect: { id: owner.id } } }],
+          },
         },
       });
 
@@ -100,7 +103,7 @@ export const getCreatedEvents = async ({
   return { success: false };
 };
 
-// Delete event
+// Get event by id
 type GetByIdInput = {
   id: string;
 };
@@ -142,6 +145,24 @@ export const getEventById = async ({ input, ctx }: GetByIdParams) => {
           email: true,
           image: true,
         },
+      },
+      participants: {
+        where: {
+          eventId,
+        },
+        include: {
+          participant: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: [{ joinedAt: 'asc' }],
+        take: 5,
+        skip: 5,
       },
     },
   });

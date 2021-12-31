@@ -67,6 +67,14 @@ const EventDetails: NextPage = () => {
             )}
           </Text>
         </Flex>
+
+        <Heading size="md">Participants</Heading>
+
+        <Box>
+          {eventData.event?.participants.map(
+            (relation) => relation.participant.name
+          )}
+        </Box>
       </Box>
     </Container>
   );
