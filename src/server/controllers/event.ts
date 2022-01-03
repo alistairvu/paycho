@@ -162,7 +162,7 @@ export const getEventById = async ({ input, ctx }: GetByIdParams) => {
         },
         orderBy: [{ joinedAt: 'asc' }],
         take: 5,
-        skip: 5,
+        skip: 0,
       },
     },
   });

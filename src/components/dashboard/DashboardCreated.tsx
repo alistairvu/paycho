@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { BsPlusLg } from 'react-icons/bs';
 import DashboardCreateForm from './DashboardCreateForm';
-import { EventContainer } from '../events';
+import { EventContainer } from '../event';
 import { inferQueryResponse } from '@/pages/api/trpc/[trpc]';
 
 type EventsFromServer = inferQueryResponse<'event.get-created'>;
