@@ -39,7 +39,7 @@ const EventEditForm: React.FC<{
   const editEvent = trpc.useMutation(['event.update'], {
     onSuccess() {
       utils.invalidateQueries(['event.get-created']);
-      // utils.invalidateQueries(['event.get-by-id', { id: id as string }]);
+      utils.invalidateQueries(['event.get-by-id', { id: id as string }]);
     },
   });
 
