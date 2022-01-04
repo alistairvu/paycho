@@ -52,6 +52,7 @@ model User {
   sessions      Session[]
   events        Event[]
   participating ParticipantsOnEvents[]
+  payments      ParticipantOnPayment[]
 }
 
 model VerificationToken {
@@ -71,8 +72,11 @@ model Event {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  total     Decimal  @default(0.0)
+
 
   participants ParticipantsOnEvents[]
+  payments     Payment[]
 }
 
 model ParticipantsOnEvents {
@@ -81,6 +85,28 @@ model ParticipantsOnEvents {
   participant   User     @relation(fields: [participantId], references: [id], onUpdate: NoAction)
   participantId String
   joinedAt      DateTime @default(now())
+  total         Decimal  @default(0.0)
 
   @@id([eventId, participantId])
+}
+
+model Payment {
+  id           String                 @id @default(cuid())
+  eventId      String
+  event        Event                  @relation(fields: [eventId], references: [id], onUpdate: NoAction)
+  value        Decimal                @default(0.0)
+  participants ParticipantOnPayment[]
+}
+
+model ParticipantOnPayment {
+  payment   Payment @relation(fields: [paymentId], references: [id], onUpdate: NoAction)
+  paymentId String
+
+  participant   User   @relation(fields: [participantId], references: [id], onUpdate: NoAction)
+  participantId String
+
+  joinedAt DateTime @default(now())
+  value    Decimal  @default(0.0)
+
+  @@id([paymentId, participantId])
 }
