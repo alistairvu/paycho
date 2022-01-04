@@ -6,6 +6,7 @@ import {
   getCreatedEvents,
   deleteEvent,
   getEventById,
+  updateEvent,
 } from '@/server/controllers/event';
 
 const eventRouter = createRouter
@@ -16,7 +17,12 @@ const eventRouter = createRouter
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
 
-    return next();
+    return next({
+      ctx: {
+        ...ctx,
+        session,
+      },
+    });
   })
   .mutation('add', {
     input: object({
@@ -42,6 +48,10 @@ const eventRouter = createRouter
   .query('get-by-id', {
     input: object({ id: string() }),
     resolve: async ({ input, ctx }) => getEventById({ input, ctx }),
+  })
+  .mutation('update', {
+    input: object({ id: string(), name: string(), currency: string() }),
+    resolve: async ({ input, ctx }) => updateEvent({ input, ctx }),
   });
 
 export default eventRouter;

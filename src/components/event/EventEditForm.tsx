@@ -16,6 +16,8 @@ import {
 } from '@chakra-ui/react';
 import cc from 'currency-codes';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import { useRouter } from 'next/router';
+import { trpc } from '@/utils/trpc';
 
 type EventInputs = {
   name: string;
@@ -29,6 +31,17 @@ const EventEditForm: React.FC<{
   initialCurrency: string | undefined;
 }> = ({ isOpen, onClose, initialName, initialCurrency }) => {
   const toast = useToast();
+  const utils = trpc.useContext();
+  const { query } = useRouter();
+  const { id } = query;
+  console.log(id);
+
+  const editEvent = trpc.useMutation(['event.update'], {
+    onSuccess() {
+      utils.invalidateQueries(['event.get-created']);
+      // utils.invalidateQueries(['event.get-by-id', { id: id as string }]);
+    },
+  });
 
   const {
     register,
@@ -42,31 +55,25 @@ const EventEditForm: React.FC<{
   });
 
   const onSubmit: SubmitHandler<EventInputs> = async (data) => {
-    console.log(data);
-    onClose();
-    toast({
-      title: 'Success!',
-      status: 'success',
-      isClosable: true,
-      duration: 2500,
-    });
-    // if (result.success) {
-    //   onClose();
+    const result = await editEvent.mutateAsync({ ...data, id: id as string });
 
-    //   toast({
-    //     title: 'Event created!',
-    //     status: 'success',
-    //     isClosable: true,
-    //     duration: 2500,
-    //   });
-    // } else {
-    //   toast({
-    //     title: 'An error occurred',
-    //     status: 'error',
-    //     isClosable: true,
-    //     duration: 2500,
-    //   });
-    // }
+    if (result.success) {
+      onClose();
+
+      toast({
+        title: 'Event successfully edited!',
+        status: 'success',
+        isClosable: true,
+        duration: 2500,
+      });
+    } else {
+      toast({
+        title: 'An error occurred',
+        status: 'error',
+        isClosable: true,
+        duration: 2500,
+      });
+    }
   };
 
   return (
@@ -117,7 +124,7 @@ const EventEditForm: React.FC<{
               isLoading={isSubmitting}
               loadingText="Creating..."
             >
-              Create
+              Edit
             </Button>
           </ModalFooter>
         </ModalContent>
