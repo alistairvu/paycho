@@ -27,8 +27,8 @@ const EventDetails: NextPage<Session> = () => {
 
   const { onOpen, isOpen, onClose } = useDisclosure();
   const editButtonText = useBreakpointValue({
-    base: 'Edit',
-    lg: 'Edit Event',
+    base: 'Options',
+    md: 'Event Options',
   });
 
   const { data: eventData, isLoading } = trpc.useQuery([
