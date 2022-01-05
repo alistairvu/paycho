@@ -1,3 +1,5 @@
+import { User } from '@prisma/client';
+import { TRPCError } from '@trpc/server';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Session } from 'next-auth';
 
@@ -6,6 +8,7 @@ type Context = {
   req: NextApiRequest;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: NextApiResponse<any>;
+  user: User;
 };
 
 // Add participant to event
@@ -19,48 +22,23 @@ type AddParticipantParams = {
   ctx: Context;
 };
 
-export const addParticipant = async ({ input, ctx }: AddParticipantParams) => {
+export const addParticipant = async ({ input }: AddParticipantParams) => {
   if (prisma === undefined) {
-    return { success: false, message: 'An error occurred.' };
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An error occurred',
+    });
   }
-
-  const { session } = ctx;
-  const { user: sessionUser } = session;
-  if (sessionUser === undefined) {
-    return { success: false, message: 'You have to be authenticated first.' };
-  }
-
-  const { email } = sessionUser;
-  const user = await prisma.user.findUnique({
-    where: { email: email as string },
-  });
-
-  if (user === null) {
-    return { success: false, message: 'An error occurred' };
-  }
-
   const { addedEmail, eventId } = input;
-
-  const checkParticipating = await prisma.participantsOnEvents.findFirst({
-    where: {
-      eventId,
-      participantId: user.id,
-    },
-  });
-
-  if (!checkParticipating) {
-    return {
-      success: false,
-      message: 'You cannot add a participant to this event.',
-    };
-  }
-
   const addedUser = await prisma.user.findUnique({
     where: { email: addedEmail },
   });
 
   if (!addedUser) {
-    return { success: false, message: 'User not found' };
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Matching user not found',
+    });
   }
 
   const newUserInEvent = await prisma.participantsOnEvents.create({
@@ -70,5 +48,7 @@ export const addParticipant = async ({ input, ctx }: AddParticipantParams) => {
     },
   });
 
-  return { success: true, data: newUserInEvent };
+  return { data: newUserInEvent };
 };
+
+// Get all participants in an event

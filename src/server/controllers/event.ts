@@ -1,3 +1,5 @@
+import { User } from '@prisma/client';
+import { TRPCError } from '@trpc/server';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Session } from 'next-auth';
 
@@ -6,6 +8,7 @@ type Context = {
   req: NextApiRequest;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: NextApiResponse<any>;
+  user: User;
 };
 
 // Add a new event
@@ -21,35 +24,25 @@ type AddEventParams = {
 
 export const addEvent = async ({ input, ctx }: AddEventParams) => {
   if (prisma === undefined) {
-    return { success: false, message: 'An error occurred.' };
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An error occurred',
+    });
   }
 
-  const { session } = ctx;
-  const { user } = session;
-  if (user === undefined) {
-    return { success: false, message: 'You have to be authenticated first.' };
-  }
-
-  const { email } = user;
-  const owner = await prisma.user.findUnique({
-    where: { email: email as string },
-  });
-
-  if (owner === null) {
-    return { success: false, message: 'An error occurred' };
-  }
+  const { user } = ctx;
 
   const event = await prisma.event.create({
     data: {
       ...input,
-      ownerId: owner.id,
+      ownerId: user.id,
       participants: {
-        create: [{ participant: { connect: { id: owner.id } } }],
+        create: [{ participant: { connect: { id: user.id } } }],
       },
     },
   });
 
-  return { success: true, event };
+  return { event };
 };
 
 // Get all events created
@@ -68,22 +61,13 @@ export const getCreatedEvents = async ({
   ctx,
 }: GetCreatedEventsParams) => {
   if (prisma === undefined) {
-    return { success: false, message: 'An error occurred.' };
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An error occurred',
+    });
   }
 
-  const { session } = ctx;
-  const { user } = session;
-  if (user === undefined) {
-    return { success: false, message: 'You have to be authenticated first.' };
-  }
-
-  const { email } = user;
-  const owner = await prisma.user.findUnique({
-    where: { email: email as string },
-  });
-  if (owner === null) {
-    return { success: false, message: 'User not found' };
-  }
+  const { user } = ctx;
 
   const take = input?.take ?? 5;
   const skip = input?.skip ?? 0;
@@ -91,7 +75,7 @@ export const getCreatedEvents = async ({
   const events = await prisma.event.findMany({
     take,
     skip,
-    where: { ownerId: owner.id },
+    where: { ownerId: user.id },
     include: {
       owner: {
         select: {
@@ -107,7 +91,7 @@ export const getCreatedEvents = async ({
   const eventCount = await prisma.event.count();
   const isFinished = take + skip >= eventCount;
 
-  return { success: true, events, isFinished };
+  return { events, isFinished };
 };
 
 // Get event by id
@@ -122,25 +106,29 @@ type GetByIdParams = {
 
 export const getEventById = async ({ input, ctx }: GetByIdParams) => {
   if (prisma === undefined) {
-    return { success: false, message: 'An error occurred.' };
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An error occurred',
+    });
   }
 
-  const { session } = ctx;
-  const { user } = session;
-  if (user === undefined) {
-    return { success: false, message: 'You have to be authenticated first.' };
-  }
+  const { user } = ctx;
+  const { id: eventId } = input;
 
-  const { email } = user;
-  const owner = await prisma.user.findUnique({
-    where: { email: email as string },
+  const checkParticipating = await prisma.participantsOnEvents.findFirst({
+    where: {
+      participantId: user.id,
+      eventId,
+    },
   });
 
-  if (!owner) {
-    return { success: false, message: 'No user found.' };
+  if (checkParticipating === null) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'You cannot view this event',
+    });
   }
 
-  const { id: eventId } = input;
   const matchingEvent = await prisma.event.findUnique({
     where: { id: eventId },
     include: {
@@ -174,14 +162,13 @@ export const getEventById = async ({ input, ctx }: GetByIdParams) => {
   });
 
   if (matchingEvent === null) {
-    return { success: false, message: 'Matching event not found.' };
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'No matching events found',
+    });
   }
 
-  if (matchingEvent.ownerId !== owner.id) {
-    return { success: false, message: 'You cannot access this event.' };
-  }
-
-  return { success: true, event: matchingEvent };
+  return { event: matchingEvent };
 };
 
 // Update event
@@ -197,49 +184,39 @@ type UpdateEventParams = {
 };
 
 export const updateEvent = async ({ input, ctx }: UpdateEventParams) => {
-  const { session } = ctx;
-
-  if (session === null || prisma === undefined) {
-    return { success: false, message: 'An error occurred.' };
+  if (prisma === undefined) {
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An error occurred',
+    });
   }
 
-  const { user } = session;
-  if (user === undefined) {
-    return { success: false, message: 'You have to be authenticated first.' };
-  }
-
-  const { email } = user;
-  const owner = await prisma.user.findUnique({
-    where: { email: email as string },
-  });
-
-  if (!owner) {
-    return { success: false, message: 'No user found.' };
-  }
-
+  const { user } = ctx;
   const { id: eventId, name, currency } = input;
   const matchingEvent = await prisma.event.findUnique({
     where: { id: eventId },
   });
 
   if (matchingEvent === null) {
-    return { success: false, message: 'Matching event not found.' };
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'No matching events found',
+    });
   }
 
-  if (matchingEvent.ownerId !== owner.id) {
-    return { success: false, message: 'You cannot update this event.' };
+  if (matchingEvent.ownerId !== user.id) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'You cannot edit this event',
+    });
   }
 
-  console.log({ name, currency });
-
-  const updated = await prisma.event.updateMany({
+  const updated = await prisma.event.update({
     where: { id: matchingEvent.id },
     data: { name, currency },
   });
 
-  console.log(updated);
-
-  return { success: true, event: matchingEvent };
+  return { event: updated };
 };
 
 // Delete event
@@ -253,37 +230,31 @@ type DeleteEventParams = {
 };
 
 export const deleteEvent = async ({ input, ctx }: DeleteEventParams) => {
-  const { session } = ctx;
-
-  if (session === null || prisma === undefined) {
-    return { success: false, message: 'An error occurred.' };
+  if (prisma === undefined) {
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An error occurred',
+    });
   }
 
-  const { user } = session;
-  if (user === undefined) {
-    return { success: false, message: 'You have to be authenticated first.' };
-  }
-
-  const { email } = user;
-  const owner = await prisma.user.findUnique({
-    where: { email: email as string },
-  });
-
-  if (!owner) {
-    return { success: false, message: 'No user found.' };
-  }
-
+  const { user } = ctx;
   const { id: eventId } = input;
   const matchingEvent = await prisma.event.findUnique({
     where: { id: eventId },
   });
 
   if (matchingEvent === null) {
-    return { success: false, message: 'Matching event not found.' };
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'No matching events found',
+    });
   }
 
-  if (matchingEvent.ownerId !== owner.id) {
-    return { success: false, message: 'You cannot delete this event.' };
+  if (matchingEvent.ownerId !== user.id) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'You cannot delete this event',
+    });
   }
 
   await prisma.event.delete({ where: { id: matchingEvent.id } });

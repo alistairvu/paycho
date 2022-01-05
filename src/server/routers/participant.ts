@@ -1,23 +1,43 @@
 import { TRPCError } from '@trpc/server';
-import { object, string } from 'superstruct';
-import createRouter from '@/server/createRouter';
+import { object, string, validate } from 'superstruct';
 import { addParticipant } from '@/server/controllers/participant';
+import { createRouterWithAuth } from '@/server/middleware/auth';
 
-const participantRouter = createRouter
-  .middleware(({ ctx, next }) => {
-    const { session } = ctx;
+const inputSchema = object({ eventId: string() });
 
-    if (!session) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
+const participantRouter = createRouterWithAuth
+  // Middleware to check participant of event
+  .middleware(async ({ ctx, rawInput, next }) => {
+    if (prisma === undefined) {
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
     }
 
-    return next({
-      ctx: {
-        ...ctx,
-        session,
+    const [err, inputData] = validate(rawInput, inputSchema);
+
+    if (err) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'You cannot perform this operation',
+      });
+    }
+
+    const { eventId } = inputData;
+    const checkParticipating = await prisma.participantsOnEvents.findFirst({
+      where: {
+        eventId,
+        participantId: ctx.user.id,
       },
     });
+    if (!checkParticipating) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'You cannot perform this operation',
+      });
+    }
+
+    return next();
   })
+  // Mutation to add user to event
   .mutation('add', {
     input: object({
       eventId: string(),

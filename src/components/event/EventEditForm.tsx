@@ -32,14 +32,19 @@ const EventEditForm: React.FC<{
 }> = ({ isOpen, onClose, initialName, initialCurrency }) => {
   const toast = useToast();
   const utils = trpc.useContext();
-  const { query } = useRouter();
-  const { id } = query;
-  console.log(id);
+  const router = useRouter();
+  const { id } = router.query;
 
   const editEvent = trpc.useMutation(['event.update'], {
     onSuccess() {
       utils.invalidateQueries(['event.get-created']);
       utils.invalidateQueries(['event.get-by-id', { id: id as string }]);
+    },
+  });
+
+  const deleteEvent = trpc.useMutation(['event.delete'], {
+    onSuccess() {
+      utils.invalidateQueries(['event.get-created']);
     },
   });
 
@@ -54,26 +59,66 @@ const EventEditForm: React.FC<{
     },
   });
 
-  const onSubmit: SubmitHandler<EventInputs> = async (data) => {
-    const result = await editEvent.mutateAsync({ ...data, id: id as string });
+  const onDelete = async () => {
+    // eslint-disable-next-line no-alert
+    if (window.confirm('Do you want to delete this event?')) {
+      await deleteEvent.mutateAsync(
+        { id: id as string },
+        {
+          onSuccess: () => {
+            onClose();
 
-    if (result.success) {
-      onClose();
+            toast({
+              title: 'Event successfully deleted!',
+              status: 'success',
+              isClosable: true,
+              duration: 2500,
+            });
 
-      toast({
-        title: 'Event successfully edited!',
-        status: 'success',
-        isClosable: true,
-        duration: 2500,
-      });
-    } else {
-      toast({
-        title: 'An error occurred',
-        status: 'error',
-        isClosable: true,
-        duration: 2500,
-      });
+            router.push('/dashboard');
+          },
+
+          onError: (error) => {
+            toast({
+              title: error.message
+                ? `An error occurred: ${error.message}`
+                : 'An error occurred',
+              status: 'error',
+              isClosable: true,
+              duration: 2500,
+            });
+          },
+        }
+      );
     }
+  };
+
+  const onSubmit: SubmitHandler<EventInputs> = async (data) => {
+    await editEvent.mutateAsync(
+      { ...data, id: id as string },
+      {
+        onSuccess: () => {
+          onClose();
+          toast({
+            title: 'Event successfully edited!',
+            status: 'success',
+            isClosable: true,
+            duration: 2500,
+          });
+        },
+
+        onError: (error) => {
+          toast({
+            title: error.message
+              ? `An error occurred: ${error.message}`
+              : 'An error occurred',
+            status: 'error',
+            isClosable: true,
+            duration: 2500,
+          });
+        },
+      }
+    );
   };
 
   return (
@@ -112,8 +157,20 @@ const EventEditForm: React.FC<{
           </ModalBody>
 
           <ModalFooter>
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="ghost" onClick={onClose} me={1}>
               Close
+            </Button>
+
+            <Button
+              colorScheme="red"
+              backgroundColor="red.500"
+              color="white"
+              isLoading={deleteEvent.isLoading}
+              onClick={() => onDelete()}
+              loadingText="Deleting..."
+              me={1}
+            >
+              Delete
             </Button>
 
             <Button

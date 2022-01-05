@@ -17,6 +17,7 @@ import {
 import cc from 'currency-codes';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { BsPlusLg } from 'react-icons/bs';
+import { useRouter } from 'next/router';
 import { trpc } from '@/utils/trpc';
 
 type EventInputs = {
@@ -42,27 +43,32 @@ const DashboardCreateForm: React.FC<{
     },
   });
   const toast = useToast();
+  const router = useRouter();
 
   const onSubmit: SubmitHandler<EventInputs> = async (data) => {
-    const result = await addEvent.mutateAsync(data);
+    await addEvent.mutateAsync(data, {
+      onSuccess: ({ event }) => {
+        onClose();
+        toast({
+          title: 'Event successfully created!',
+          status: 'success',
+          isClosable: true,
+          duration: 2500,
+        });
+        router.push(`/events/${event.id}`);
+      },
 
-    if (result.success) {
-      onClose();
-
-      toast({
-        title: 'Event created!',
-        status: 'success',
-        isClosable: true,
-        duration: 2500,
-      });
-    } else {
-      toast({
-        title: 'An error occurred',
-        status: 'error',
-        isClosable: true,
-        duration: 2500,
-      });
-    }
+      onError: (error) => {
+        toast({
+          title: error.message
+            ? `An error occurred: ${error.message}`
+            : 'An error occurred',
+          status: 'error',
+          isClosable: true,
+          duration: 2500,
+        });
+      },
+    });
   };
 
   return (

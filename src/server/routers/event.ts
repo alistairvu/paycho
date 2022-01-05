@@ -1,6 +1,4 @@
-import { TRPCError } from '@trpc/server';
 import { object, string, number, optional } from 'superstruct';
-import createRouter from '@/server/createRouter';
 import {
   addEvent,
   getCreatedEvents,
@@ -8,22 +6,9 @@ import {
   getEventById,
   updateEvent,
 } from '@/server/controllers/event';
+import { createRouterWithAuth } from '@/server/middleware/auth';
 
-const eventRouter = createRouter
-  .middleware(({ ctx, next }) => {
-    const { session } = ctx;
-
-    if (!session) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
-
-    return next({
-      ctx: {
-        ...ctx,
-        session,
-      },
-    });
-  })
+const eventRouter = createRouterWithAuth
   .mutation('add', {
     input: object({
       name: string(),
@@ -41,7 +26,7 @@ const eventRouter = createRouter
     ),
     resolve: async ({ input, ctx }) => getCreatedEvents({ input, ctx }),
   })
-  .query('delete', {
+  .mutation('delete', {
     input: object({ id: string() }),
     resolve: async ({ input, ctx }) => deleteEvent({ input, ctx }),
   })

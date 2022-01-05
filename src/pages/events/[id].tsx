@@ -31,10 +31,12 @@ const EventDetails: NextPage<Session> = () => {
     md: 'Event Options',
   });
 
-  const { data: eventData, isLoading } = trpc.useQuery([
-    'event.get-by-id',
-    { id: id as string },
-  ]);
+  const {
+    data: eventData,
+    isLoading,
+    isError,
+    error: eventError,
+  } = trpc.useQuery(['event.get-by-id', { id: id as string }]);
 
   if (isLoading) {
     return (
@@ -44,7 +46,7 @@ const EventDetails: NextPage<Session> = () => {
     );
   }
 
-  if (!eventData?.success) {
+  if (isError || !eventData) {
     return (
       <Container maxW="4xl" centerContent>
         <SharedMeta title="Error" />
@@ -57,7 +59,7 @@ const EventDetails: NextPage<Session> = () => {
           borderRadius="lg"
           borderWidth={2}
         >
-          <Heading>{eventData?.message}</Heading>
+          <Heading>{eventError?.message}</Heading>
           <Text>Please try again later...</Text>
         </Box>
       </Container>
