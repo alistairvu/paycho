@@ -41,6 +41,20 @@ export const addParticipant = async ({ input }: AddParticipantParams) => {
     });
   }
 
+  const existingParticipant = await prisma.participantsOnEvents.findFirst({
+    where: {
+      participantId: addedUser.id,
+      eventId,
+    },
+  });
+
+  if (existingParticipant) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'User is already a participant',
+    });
+  }
+
   const newUserInEvent = await prisma.participantsOnEvents.create({
     data: {
       eventId,

@@ -1,9 +1,12 @@
 import { TRPCError } from '@trpc/server';
-import { object, string, validate } from 'superstruct';
+import { object, optional, string, validate } from 'superstruct';
 import { addParticipant } from '@/server/controllers/participant';
 import { createRouterWithAuth } from '@/server/middleware/auth';
 
-const inputSchema = object({ eventId: string() });
+const inputSchema = object({
+  eventId: string(),
+  addedEmail: optional(string()),
+});
 
 const participantRouter = createRouterWithAuth
   // Middleware to check participant of event
@@ -13,6 +16,7 @@ const participantRouter = createRouterWithAuth
     }
 
     const [err, inputData] = validate(rawInput, inputSchema);
+    console.log(inputData);
 
     if (err) {
       throw new TRPCError({
